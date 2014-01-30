@@ -7,10 +7,9 @@ class SoftDeleteQuerySet(QuerySet):
 
     def __init__(self, *args, **kwargs):
         super(SoftDeleteQuerySet, self).__init__(*args, **kwargs)
-        assert 'soft_delete' in self._document._meta
-        assert type(self._document._meta['soft_delete']) is dict
+        soft_delete = self._document._meta.get('soft_delete', None)
+        assert type(soft_delete) is dict
 
-        soft_delete = self._document._meta['soft_delete']
         for key in soft_delete:
             if key in kwargs:
                 continue
@@ -47,9 +46,7 @@ class SoftDeleteDocument(Document):
 
     @property
     def _qs(self):  #FIXME should be present in mongoengine ?
-        """
-        Returns the queryset to use for updating / reloading / deletions
-        """
+        """Returns the queryset to use for updating / reloading / deletions."""
         if not hasattr(self, '__objects'):
             queryset_class = self._meta.get('queryset_class', QuerySet)
             self.__objects = queryset_class(self, self._get_collection())
@@ -59,16 +56,20 @@ class SoftDeleteDocument(Document):
         """Won't delete the document as much as marking it as deleted according
         to parameters present in meta.
         """
-        soft_delete = self._meta.get('soft_delete')
-        cls_name = self.__class__.__name__
-        assert soft_delete, "%s's meta doesn't exist" % cls_name
-        assert type(soft_delete) is dict, \
-                "%s's soft_delete must be a dictionary" % cls_name
-        for key in soft_delete:
-            assert key in self._fields, \
-                    "%s's meta has no field %s" % (cls_name, key)
-            setattr(self, key, soft_delete[key])
+        for key in self._meta.get('soft_delete', {}):
+            setattr(self, key, self._meta['soft_delete'][key])
         self.save()
+
+    @property
+    def is_soft_deleted(self):
+        """Return true if the field of the document are set according to the
+        soft deleted state as defined in the metas.
+        """
+        for key in self._meta.get('soft_delete', {}):
+            if not self._meta['soft_delete'][key] == getattr(self, key):
+                return False
+        return True
+
 
     def update(self, **kwargs):
         """The ~mongoengine.Document.update method had to be overriden
