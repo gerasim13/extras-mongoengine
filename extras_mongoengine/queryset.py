@@ -5,11 +5,10 @@ class SoftDeleteQuerySet(QuerySet):
 
     def __init__(self, *args, **kwargs):
         super(SoftDeleteQuerySet, self).__init__(*args, **kwargs)
-        soft_delete = self._document._meta.get('soft_delete', None)
-        assert type(soft_delete) is dict
+        soft_delete = self._document._meta.get('soft_delete', {})
 
         for key in soft_delete:
-            if key in kwargs:
+            if key in kwargs:  # not overriding kwargs
                 continue
             if type(soft_delete[key]) is bool:
                 self._initial_query[key] = not soft_delete[key]
@@ -33,4 +32,11 @@ class SoftDeleteQuerySet(QuerySet):
         for key in set(self._initial_query)\
                 .intersection(self._document._meta['soft_delete']):
             del self._initial_query[key]
+        return self.clone()
+
+    @property
+    def soft_deleted(self):
+        soft_delete = self._document._meta.get('soft_delete', {})
+        for key in soft_delete:
+            self._initial_query[key] = soft_delete[key]
         return self.clone()
