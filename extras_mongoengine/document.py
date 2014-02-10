@@ -30,6 +30,17 @@ class SoftDeleteDocument(Document):
         self.save()
         signals.post_soft_delete.send(self.__class__, document=self)
 
+    def soft_undelete(self):
+        """Will undelete the document
+        """
+        signals.pre_soft_undelete.send(self.__class__, document=self)
+        for key in self._meta.get('soft_delete', {}):
+            # FIXME: this won't work with non-boolean attributes
+            undelete_value = not self._meta['soft_delete'][key]
+            setattr(self, key, undelete_value)
+        self.save()
+        signals.post_soft_undelete.send(self.__class__, document=self)
+
     @property
     def is_soft_deleted(self):
         """Return true if the field of the document are set according to the

@@ -5,15 +5,24 @@ class SoftDeleteQuerySet(QuerySet):
 
     def __init__(self, *args, **kwargs):
         super(SoftDeleteQuerySet, self).__init__(*args, **kwargs)
+
+        not_soft_deleted_conditions = self._not_soft_deleted_conditions(**kwargs)
+        self._initial_query.update(not_soft_deleted_conditions)
+
+    def _not_soft_deleted_conditions(self, **kwargs):
+        """Query conditions for documents that are not soft deleted
+        """
+        conditions = {}
         soft_delete = self._document._meta.get('soft_delete', {})
 
         for key in soft_delete:
             if key in kwargs:  # not overriding kwargs
                 continue
             if type(soft_delete[key]) is bool:
-                self._initial_query[key] = not soft_delete[key]
+                conditions[key] = not soft_delete[key]
             else:
-                self._initial_query[key] = {'$ne': soft_delete[key]}
+                conditions[key] = {'$ne': soft_delete[key]}
+            return conditions
 
     def __call__(self, q_obj=None, class_check=True, slave_okay=False,
             read_preference=None, **query):
