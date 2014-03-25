@@ -1,7 +1,9 @@
 from datetime import timedelta
-from mongoengine.base import BaseField
+from mongoengine.base import BaseField, ComplexBaseField
 from mongoengine.fields import IntField, StringField, EmailField, ListField
 from mongoengine.queryset import QuerySet
+
+from datastructures import BaseSet
 
 
 class TimedeltaField(BaseField):
@@ -123,8 +125,8 @@ class SetField(ListField):
     def validate(self, value):
         """Make sure that a list of valid fields is being used.
         """
-        if not isinstance(value, (set, QuerySet)):
-            self.error('Only set may be used in a set field')
+        if not isinstance(value, set):
+            self.error('Only sets may be used in a set field')
         super(SetField, self).validate(list(value))
 
     def to_python(self, value):
@@ -132,3 +134,10 @@ class SetField(ListField):
 
     def to_mongo(self, value):
         return super(SetField, self).to_mongo(list(value))
+
+    def __get__(self, instance, owner):
+        value = super(SetField, self).__get__(instance, owner)
+        if (isinstance(value, set) and not isinstance(value, BaseSet)):
+            value = BaseSet(value, instance, self.name)
+            instance._data[self.name] = value
+        return value
