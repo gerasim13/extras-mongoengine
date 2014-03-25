@@ -1,7 +1,7 @@
 from datetime import timedelta
 from mongoengine.base import BaseField
-from mongoengine.fields import IntField, StringField, EmailField
-
+from mongoengine.fields import IntField, StringField, EmailField, ListField
+from mongoengine.queryset import QuerySet
 
 class TimedeltaField(BaseField):
     """A timedelta field.
@@ -109,3 +109,25 @@ class StringEnumField(EnumField, StringField):
     """A variation on :class:`EnumField` for only string containing enumeration.
     """
     pass
+
+
+class SetField(ListField):
+    """A variation on :class:`ListField` instaciating sets.
+    """
+
+    def __init__(self, field=None, **kwargs):
+        kwargs.setdefault('default', lambda: set())
+        super(SetField, self).__init__(field, **kwargs)
+
+    def validate(self, value):
+        """Make sure that a list of valid fields is being used.
+        """
+        if not isinstance(value, (set, QuerySet)):
+            self.error('Only set may be used in a set field')
+        super(SetField, self).validate(value)
+
+    def to_python(self, value):
+        return set(value)
+
+    def to_mongo(self, value):
+        return list(value)
