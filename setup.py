@@ -2,7 +2,7 @@
 from distutils.core import setup
 
 setup(name='extras_mongoengine',
-      version='0.2.1',
+      version='0.2.2',
       description='MongoEngine Extras - Field Types and any other wizardry.',
       url='https://github.com/MongoEngine/extras-mongoengine/',
       install_requires=['mongoengine>=0.8.6'],

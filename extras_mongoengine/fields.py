@@ -1,5 +1,5 @@
 from datetime import timedelta
-from mongoengine.base import BaseField, ComplexBaseField
+from mongoengine.base import BaseField
 from mongoengine.fields import IntField, StringField, EmailField, ListField
 from mongoengine.queryset import QuerySet
 
@@ -125,7 +125,7 @@ class SetField(ListField):
     def validate(self, value):
         """Make sure that a list of valid fields is being used.
         """
-        if not isinstance(value, set):
+        if not isinstance(value, (set, QuerySet)):
             self.error('Only sets may be used in a set field')
         super(SetField, self).validate(list(value))
 
