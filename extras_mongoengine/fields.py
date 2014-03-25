@@ -113,7 +113,7 @@ class StringEnumField(EnumField, StringField):
 
 
 class SetField(ListField):
-    """A variation on :class:`ListField` instaciating sets.
+    """A variation on :class:`ListField` instatiating sets.
     """
 
     def __init__(self, field=None, **kwargs):
@@ -125,10 +125,10 @@ class SetField(ListField):
         """
         if not isinstance(value, (set, QuerySet)):
             self.error('Only set may be used in a set field')
-        super(SetField, self).validate(value)
+        super(SetField, self).validate(list(value))
 
     def to_python(self, value):
-        return set(value)
+        return set(super(SetField, self).to_python(value))
 
     def to_mongo(self, value):
-        return list(value)
+        return super(SetField, self).to_mongo(list(value))
