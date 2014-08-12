@@ -22,14 +22,15 @@ class SoftDeleteQuerySet(QuerySet):
                 conditions[key] = not soft_delete[key]
             else:
                 conditions[key] = {'$ne': soft_delete[key]}
-            return conditions
+        return conditions
 
     def __call__(self, q_obj=None, class_check=True, slave_okay=False,
             read_preference=None, **query):
         """A simple wrapper around ~mongoengine.queryset.QuerySet.__call__ that
         allows query parameters to override those written in the initial query.
         """
-        for key in set(query).intersection(self._document._meta['soft_delete']):
+        soft_delete_attrs = self._document._meta.get('soft_delete', {})
+        for key in set(query).intersection(soft_delete_attrs):
             del self._initial_query[key]
         return super(SoftDeleteQuerySet, self).__call__(q_obj=None,
                 class_check=True, slave_okay=False, read_preference=None,
@@ -38,14 +39,14 @@ class SoftDeleteQuerySet(QuerySet):
     @property
     def including_soft_deleted(self):
         """Will clean the queryset from soft_delete notions."""
-        for key in set(self._initial_query)\
-                .intersection(self._document._meta['soft_delete']):
+        soft_delete_attrs = self._document._meta.get('soft_delete', {})
+        for key in set(self._initial_query).intersection(soft_delete_attrs):
             del self._initial_query[key]
         return self.clone()
 
     @property
     def soft_deleted(self):
-        soft_delete = self._document._meta.get('soft_delete', {})
-        for key in soft_delete:
-            self._initial_query[key] = soft_delete[key]
+        soft_delete_attrs = self._document._meta.get('soft_delete', {})
+        for key in soft_delete_attrs:
+            self._initial_query[key] = soft_delete_attrs[key]
         return self.clone()
