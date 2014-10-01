@@ -32,9 +32,9 @@ class SoftDeleteQuerySet(QuerySet):
         soft_delete_attrs = self._document._meta.get('soft_delete', {})
         for key in set(query).intersection(soft_delete_attrs):
             del self._initial_query[key]
-        return super(SoftDeleteQuerySet, self).__call__(q_obj=None,
-                class_check=True, slave_okay=False, read_preference=None,
-                **query)
+        return super(SoftDeleteQuerySet, self).__call__(q_obj=q_obj,
+                class_check=class_check, slave_okay=slave_okay,
+                read_preference=read_preference, **query)
 
     @property
     def including_soft_deleted(self):
