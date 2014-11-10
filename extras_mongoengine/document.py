@@ -35,8 +35,7 @@ class SoftDeleteDocument(Document):
         """
         signals.pre_soft_undelete.send(self.__class__, document=self)
         for key in self._meta.get('soft_delete', {}):
-            # FIXME: this won't work with non-boolean attributes
-            undelete_value = not self._meta['soft_delete'][key]
+            undelete_value = self._fields[key].default
             setattr(self, key, undelete_value)
         self.save()
         signals.post_soft_undelete.send(self.__class__, document=self)
