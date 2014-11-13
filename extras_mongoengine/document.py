@@ -25,8 +25,8 @@ class SoftDeleteDocument(Document):
         to parameters present in meta.
         """
         signals.pre_soft_delete.send(self.__class__, document=self)
-        for key in self._meta.get('soft_delete', {}):
-            setattr(self, key, self._meta['soft_delete'][key])
+        for key, val in self._meta.get('soft_delete', {}).items():
+            setattr(self, key, val)
         self.save()
         signals.post_soft_delete.send(self.__class__, document=self)
 
