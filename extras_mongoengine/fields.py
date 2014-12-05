@@ -137,7 +137,7 @@ class SetField(ListField):
 
     def __get__(self, instance, owner):
         value = super(SetField, self).__get__(instance, owner)
-        if (isinstance(value, set) and not isinstance(value, BaseSet)):
+        if (value is not None and not isinstance(value, BaseSet)):
             value = BaseSet(value, instance, self.name)
             instance._data[self.name] = value
         return value
