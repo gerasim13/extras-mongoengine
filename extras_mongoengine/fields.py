@@ -3,7 +3,7 @@ from mongoengine.base import BaseField
 from mongoengine.fields import IntField, StringField, EmailField, ListField
 from mongoengine.queryset import QuerySet
 
-from datastructures import BaseSet
+from .datastructures import BaseSet
 
 
 class TimedeltaField(BaseField):
