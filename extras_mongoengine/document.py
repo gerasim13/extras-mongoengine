@@ -1,3 +1,5 @@
+from pymongo.read_preferences import ReadPreference
+
 from mongoengine.base import TopLevelDocumentMetaclass
 from mongoengine.queryset import QuerySet, OperationError
 from mongoengine.document import Document
@@ -66,3 +68,22 @@ class SoftDeleteDocument(Document):
                 raise OperationError('attempt to update a document not yet saved')
         return self._qs.including_soft_deleted\
                 .filter(**self._object_key).update_one(**kwargs)
+
+    def reload(self, max_depth=1):
+        """Overriding reload which would raise DoesNotExist
+        on soft deleted document"""
+        if not self.pk:
+            raise self.DoesNotExist("Document does not exist")
+        obj = self._qs.read_preference(ReadPreference.PRIMARY)\
+                .filter(**self._object_key).including_soft_deleted.limit(1)\
+                .select_related(max_depth=max_depth)
+
+        if obj:
+            obj = obj[0]
+        else:
+            raise self.DoesNotExist("Document does not exist")
+        for field in self._fields_ordered:
+            setattr(self, field, self._reload(field, obj[field]))
+        self._changed_fields = obj._changed_fields
+        self._created = False
+        return obj
