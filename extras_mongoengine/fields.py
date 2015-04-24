@@ -85,7 +85,8 @@ class EnumField(object):
         return enum.value if hasattr(enum, 'value') else enum
 
     def to_python(self, value):
-        return self.enum(super(EnumField, self).to_python(value))
+        v = value.value if hasattr(value, 'value') else value
+        return self.enum(super(EnumField, self).to_python(v))
 
     def to_mongo(self, value):
         return self.__get_value(value)
