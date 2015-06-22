@@ -1,6 +1,9 @@
 from datetime import timedelta
 from mongoengine.base import BaseField
-from mongoengine.fields import IntField, StringField, EmailField
+from mongoengine.fields import IntField, StringField, EmailField, ListField
+from mongoengine.queryset import QuerySet
+
+from .datastructures import BaseSet
 
 
 class TimedeltaField(BaseField):
@@ -82,7 +85,8 @@ class EnumField(object):
         return enum.value if hasattr(enum, 'value') else enum
 
     def to_python(self, value):
-        return self.enum(super(EnumField, self).to_python(value))
+        v = value.value if hasattr(value, 'value') else value
+        return self.enum(super(EnumField, self).to_python(v))
 
     def to_mongo(self, value):
         return self.__get_value(value)
@@ -109,3 +113,32 @@ class StringEnumField(EnumField, StringField):
     """A variation on :class:`EnumField` for only string containing enumeration.
     """
     pass
+
+
+class SetField(ListField):
+    """A variation on :class:`ListField` instatiating sets.
+    """
+
+    def __init__(self, field=None, **kwargs):
+        kwargs.setdefault('default', lambda: set())
+        super(SetField, self).__init__(field, **kwargs)
+
+    def validate(self, value):
+        """Make sure that a list of valid fields is being used.
+        """
+        if not isinstance(value, (set, QuerySet)):
+            self.error('Only sets may be used in a set field')
+        super(SetField, self).validate(list(value))
+
+    def to_python(self, value):
+        return set(super(SetField, self).to_python(value))
+
+    def to_mongo(self, value):
+        return super(SetField, self).to_mongo(list(value))
+
+    def __get__(self, instance, owner):
+        value = super(SetField, self).__get__(instance, owner)
+        if (value is not None and not isinstance(value, BaseSet)):
+            value = BaseSet(value, instance, self.name)
+            instance._data[self.name] = value
+        return value
