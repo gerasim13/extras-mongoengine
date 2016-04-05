@@ -17,7 +17,7 @@ class TimedeltaField(BaseField):
         if not isinstance(value, (timedelta, int, float)):
             self.error(u'cannot parse timedelta "%r"' % value)
 
-    def to_mongo(self, value):
+    def to_mongo(self, value, **kwargs):
         return self.prepare_query_value(None, value)
 
     def to_python(self, value):
@@ -88,7 +88,7 @@ class EnumField(object):
         v = value.value if hasattr(value, 'value') else value
         return self.enum(super(EnumField, self).to_python(v))
 
-    def to_mongo(self, value):
+    def to_mongo(self, value, **kwargs):
         return self.__get_value(value)
 
     def prepare_query_value(self, op, value):
@@ -133,8 +133,8 @@ class SetField(ListField):
     def to_python(self, value):
         return set(super(SetField, self).to_python(value))
 
-    def to_mongo(self, value):
-        return super(SetField, self).to_mongo(list(value))
+    def to_mongo(self, value, **kwargs):
+        return super(SetField, self).to_mongo(list(value),kwargs)
 
     def __get__(self, instance, owner):
         value = super(SetField, self).__get__(instance, owner)
