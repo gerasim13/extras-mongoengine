@@ -70,7 +70,7 @@ class LocalStorageFileField(BaseField):
         return os.path.join(
                 self.get_directory_name(), self.get_filename(filename))
 
-    def to_mongo(self, value):
+    def to_mongo(self, value, **kwargs):
         if isinstance(value, self.proxy_class):
             return value.name
         return value
