@@ -80,7 +80,7 @@ class EnumField(object):
 
     def __init__(self, enum, *args, **kwargs):
         self.enum = enum
-        kwargs['choices'] = [choice.name for choice in enum]
+        kwargs['choices'] = [choice for choice in enum]
         super(EnumField, self).__init__(*args, **kwargs)
 
     def __get_value(self, enum):
